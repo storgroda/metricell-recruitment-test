@@ -1,6 +1,6 @@
 ﻿using InterviewTest.Server.Model;
+using InterviewTest.Server.Repository;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Data.Sqlite;
 
 namespace InterviewTest.Server.Controllers
 {
@@ -8,32 +8,69 @@ namespace InterviewTest.Server.Controllers
     [Route("api/[controller]")]
     public class EmployeesController : ControllerBase
     {
-        [HttpGet]
-        public List<Employee> Get()
+        private readonly IEmployeeRepository _employeeRepository;
+
+        public EmployeesController(IEmployeeRepository employeeRepository)
         {
-            var employees = new List<Employee>();
+            _employeeRepository = employeeRepository;
+        }
 
-            var connectionStringBuilder = new SqliteConnectionStringBuilder() { DataSource = "./SqliteDB.db" };
-            using (var connection = new SqliteConnection(connectionStringBuilder.ConnectionString))
+        [HttpGet]
+        public async Task<ActionResult<IEnumerable<Employee>>> GetEmployees()
+            => await _employeeRepository.GetEmployees();
+
+        // GET: api/Employees/5
+        [HttpGet("{id}")]
+        public async Task<ActionResult<Employee>> GetEmployee(int id)
+        {
+            var employee = await _employeeRepository.Get(id);
+
+            if (employee == null)
             {
-                connection.Open();
-
-                var queryCmd = connection.CreateCommand();
-                queryCmd.CommandText = @"SELECT Name, Value FROM Employees";
-                using (var reader = queryCmd.ExecuteReader())
-                {
-                    while (reader.Read())
-                    {
-                        employees.Add(new Employee
-                        {
-                            Name = reader.GetString(0),
-                            Value = reader.GetInt32(1)
-                        });
-                    }
-                }
+                return NotFound();
             }
 
-            return employees;
+            return employee;
+        }
+
+        // PUT: api/Employees/5
+        [HttpPut("{id}")]
+        public async Task<IActionResult> PutEmployee(int id, Employee employee)
+        {
+            if (id != employee.RowId)
+            {
+                return BadRequest();
+            }
+
+            await _employeeRepository.Edit(employee);
+
+            return NoContent();
+        }
+
+        // POST: api/Employees
+        [HttpPost]
+        public async Task<ActionResult<Employee>> PostEmployee(Employee employee)
+        {
+            // Employee employee = new() { Name = name, Value = value };
+
+            await _employeeRepository.Create(employee);
+
+            return CreatedAtAction("GetEmployee", new { id = employee.RowId }, employee);
+        }
+
+        // DELETE: api/Employees/5
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> DeleteEmployee(int id)
+        {
+            var employee = await _employeeRepository.Get(id);
+            if (employee == null)
+            {
+                return NotFound();
+            }
+
+            await _employeeRepository.Delete(id);
+
+            return NoContent();
         }
     }
 }

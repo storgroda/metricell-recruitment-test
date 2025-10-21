@@ -1,0 +1,10 @@
+{
+"SpaProxyServer": {
+"ServerUrl": "https://localhost:5173",
+"RedirectUrl": "",
+"LaunchCommand": "npm run dev",
+"WorkingDirectory": "C:\\Users\\storg\\Source\\Repos\\metricell-recruitment-test\\InterviewTest.Server\\..\\interviewtest.client",
+"MaxTimeoutInSeconds": "120",
+"KeepRunning": "false"
+}
+}

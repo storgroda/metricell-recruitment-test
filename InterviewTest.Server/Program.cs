@@ -1,4 +1,7 @@
+using InterviewTest.Server.Model;
+using InterviewTest.Server.Repository;
 using Microsoft.Data.Sqlite;
+using Microsoft.EntityFrameworkCore;
 
 #region Prepare Sqlite
 var connectionStringBuilder = new SqliteConnectionStringBuilder() { DataSource = "./SqliteDB.db" };
@@ -99,7 +102,20 @@ using (var connection = new SqliteConnection(connectionStringBuilder.ConnectionS
 
 var builder = WebApplication.CreateBuilder(args);
 
+builder.Services.AddDbContext<ApplicationDbContext>(options =>
+    options.UseSqlite("Data Source = ./SqliteDB.db"));
+
 builder.Services.AddControllers();
+
+builder.Services.AddScoped<SqliteConnection>(_ =>
+{
+    var connectionString = "Data Source = ./SqliteDB.db";
+    var connection = new SqliteConnection(connectionString);
+    connection.Open();
+    return connection;
+});
+
+builder.Services.AddScoped<IEmployeeRepository, EmployeeRepository>();
 
 var app = builder.Build();
 
